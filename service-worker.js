@@ -1,22 +1,15 @@
-const CACHE_NAME='nicolau-assistance-shell-v1';
-const APP_SHELL=['./','./index.html','./styles.css','./app.js','./pwa.js','./manifest.webmanifest','./assets/logo.png','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
-self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
-});
-self.addEventListener('activate',event=>{
-  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
-});
-self.addEventListener('fetch',event=>{
-  const req=event.request, url=new URL(req.url);
-  if(req.method!=='GET' || url.origin!==self.location.origin || url.pathname.endsWith('/config.supabase.json')) return;
-  if(req.mode==='navigate'){
-    event.respondWith(fetch(req).then(res=>{
-      const copy=res.clone(); caches.open(CACHE_NAME).then(c=>c.put('./index.html',copy)); return res;
-    }).catch(()=>caches.match('./index.html')));
-    return;
-  }
-  event.respondWith(caches.match(req).then(cached=>cached || fetch(req).then(res=>{
-    if(res.ok){const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(req,copy));}
+// Network-first: com Internet carrega sempre a versão mais recente; sem Internet usa a cópia guardada.
+const CACHE_NAME='nicolau-assistance-shell-v2';
+const APP_SHELL=['./','./index.html','./styles.css','./config.js','./app.js','./pwa.js','./manifest.webmanifest','./assets/logo.png','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{
+  const req=e.request,url=new URL(req.url);
+  if(req.method!=='GET')return;
+  const cdn=url.hostname==='cdn.jsdelivr.net'||url.hostname==='unpkg.com';
+  if(url.origin!==self.location.origin&&!cdn)return; // Supabase (API) nunca passa pela cache
+  e.respondWith(fetch(req).then(res=>{
+    if(res&&(res.ok||res.type==='opaque')){const copy=res.clone();caches.open(CACHE_NAME).then(c=>c.put(req.mode==='navigate'?'./index.html':req,copy))}
     return res;
-  })));
+  }).catch(()=>caches.match(req).then(r=>r||(req.mode==='navigate'?caches.match('./index.html'):Response.error()))));
 });
