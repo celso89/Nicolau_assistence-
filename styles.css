@@ -6,3 +6,5 @@
 .install-btn:hover{background:#dcecff}
 .login-card .install-btn{display:block;width:100%;margin-top:12px;padding:12px}
 @media(max-width:700px){.top-right .install-btn{font-size:10px;padding:8px 9px}.top-right{flex-wrap:wrap;justify-content:flex-end}}
+
+.online-dot.offline{color:#ff6b6b}
