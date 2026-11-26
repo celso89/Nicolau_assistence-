@@ -1,0 +1,44 @@
+NICOLAU ASSISTANCE — WEB + SUPABASE (1 SÓ LOGIN)
+================================================
+Projeto Supabase: Nicolau_Assistance (já ligado em config.js, tabelas já criadas).
+
+PASSO A PASSO
+-------------
+1. Criar o login (JÁ FEITO: josenicolau938@gmail.com)
+   Supabase > Authentication > Users > Add user > Create new user.
+   Email + palavra-passe, marcar "Auto Confirm User". (Só é possível criar 1 conta.)
+   Copie o UID do utilizador criado.
+
+2. Colocar o UID (JÁ FEITO: 66dc42c7-092f-4605-b90b-6f0498ca81ac)
+   SQL Editor > New query, cole e execute (troque o UID):
+
+   create or replace function public.is_owner()
+   returns boolean language sql stable set search_path = public
+   as $$ select auth.uid() = 'COLE-AQUI-O-UID'::uuid; $$;
+
+   (Esta mesma função está em supabase/schema.sql, passo 2.)
+
+3. Desligar registos públicos
+   Authentication > Sign In / Providers > desligar "Allow new users to sign up".
+
+4. Publicar o site (HTTPS)
+   Netlify: app.netlify.com/drop > arraste esta pasta. Depois, em Supabase >
+   Authentication > URL Configuration, ponha o endereço em Site URL.
+   Não abra index.html como ficheiro local.
+
+5. Entrar com o email/palavra-passe do passo 1 e começar:
+   Serviços > Clientes > Estoque > Ordens (o caixa é lançado automaticamente).
+
+SEGURANÇA
+  - Só o UID da função is_owner() lê ou escreve dados (RLS + grants). O público (anon) não vê nada.
+  - A base de dados recusa uma 2.ª conta.
+  - Só a Publishable Key está no site. Nunca coloque a secret/service_role.
+
+SE ENTRAR E APARECER "Esta conta não tem permissão"
+  O UID da função is_owner() está errado/por preencher — repita o passo 2.
+
+TABELAS
+  clients, service_catalog, visor_stock, visor_orders, tool_stock,
+  service_orders, cash_movements, activity_logs
+
+PWA: Android/Chrome: botão "Instalar no ecrã inicial". iPhone: Safari > Partilhar > Adicionar ao ecrã principal.
