@@ -1,5 +1,5 @@
 {
-  "supabase_url": "COLOQUE_AQUI_O_PROJECT_URL",
-  "publishable_key": "COLOQUE_AQUI_A_PUBLISHABLE_KEY",
-  "admin_uid": "COLOQUE_AQUI_O_UID_DO_ADMINISTRADOR"
+  "supabase_url": "https://gxvumavcfdctmutxvtbw.supabase.co",
+  "publishable_key": "sb_publishable_6snpBOZWHBD8ZYTdR9SpWQ_76gGXncF",
+  "admin_uid": "b0d1c87a-4569-4637-9415-55eda42728d0"
 }
