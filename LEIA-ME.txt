@@ -1,0 +1,124 @@
+NICOLAU ASSISTANCE — VERSÃO WEB COM SUPABASE
+================================================
+
+Esta pasta converte a aplicação desktop enviada para uma aplicação web. O sistema utiliza Supabase Auth e PostgreSQL como base de dados central. A aplicação pode ser alojada num serviço de hosting estático (Netlify, Cloudflare Pages, GitHub Pages, etc.). Os dados operacionais ficam no Supabase, não no navegador.
+
+FUNCIONALIDADES INCLUÍDAS
+- Login por email e palavra-passe através do Supabase Auth.
+- Perfis de Administrador e Funcionário; só o administrador cria contas de funcionários.
+- Clientes.
+- Ordens de serviço com tipo Serviço Normal ou Troca de Visor.
+- Para Troca de Visor, origem obrigatória: No Estoque ou Por Encomenda.
+- Estoques independentes: visor_stock, visor_orders e tool_stock.
+- Catálogo de serviços: cadastrar, remover e alterar preço; tipos separados.
+- Caixa com quatro totais: Serviços Normais, Visores do Estoque, Visores Por Encomenda e Total Geral. Saídas são subtraídas do respetivo grupo.
+- Histórico de ações.
+- Layout adaptável a computador e telemóvel.
+
+1. CONFIGURAR O SUPABASE
+------------------------
+1. Crie um projeto em https://supabase.com/ ou abra o projeto que pretende usar.
+2. No painel do projeto, abra SQL Editor > New query.
+3. Abra supabase/schema.sql, copie todo o conteúdo e execute.
+4. Em Project Settings > API, copie:
+   - Project URL
+   - Publishable key (pode aparecer como sb_publishable_...)
+   Não use a secret key nem a service_role no navegador.
+5. Edite config.supabase.json:
+   supabase_url = URL do projeto
+   publishable_key = Publishable Key
+   admin_uid = UID do utilizador administrador (passo seguinte)
+
+2. CRIAR O ADMINISTRADOR
+------------------------
+1. No Supabase, abra Authentication > Users > Add user.
+2. Crie o email e palavra-passe da conta principal de administrador.
+3. Copie o UUID/UID desse utilizador.
+4. No SQL Editor, execute o comando abaixo, substituindo o UID pelo UUID real:
+
+   update public.profiles
+   set role = 'admin', full_name = 'Administrador'
+   where id = 'COLOQUE-AQUI-O-UID-REAL';
+
+5. Coloque o mesmo UID em config.supabase.json no campo admin_uid.
+6. Nunca partilhe a palavra-passe do administrador. A conta principal é a única que deve criar funcionários.
+
+3. ATIVAR A CRIAÇÃO SEGURA DE FUNCIONÁRIOS
+------------------------------------------
+A criação de utilizadores com palavra-passe é feita por uma Supabase Edge Function. A chave de serviço fica apenas no servidor.
+
+Instale Supabase CLI no computador e, dentro desta pasta do projeto, execute:
+
+   supabase login
+   supabase link --project-ref O_REF_DO_PROJETO
+   supabase functions deploy create-employee
+
+A Edge Function utiliza as variáveis padrão SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY disponibilizadas no ambiente Supabase. A service role nunca deve ser colocada em config.supabase.json, app.js ou qualquer ficheiro público.
+
+4. PUBLICAR O SITE
+------------------
+- Publique todos os ficheiros desta pasta na raiz do seu hosting.
+- Mantenha config.supabase.json, index.html, app.js e styles.css no mesmo nível.
+- Mantenha a pasta assets/ e a pasta supabase/ no projeto-fonte.
+- Para Netlify/Cloudflare Pages, pode publicar a pasta diretamente; não é necessário comando de build.
+- Depois de publicar, abra o domínio e entre com o utilizador administrador criado no passo 2.
+
+5. PERMISSÕES E SEGURANÇA
+-------------------------
+- O UID em config.supabase.json identifica a conta administrativa esperada no cliente, mas não é mecanismo de segurança.
+- A autorização real é aplicada no banco através de Row Level Security (RLS) e do campo profiles.role.
+- O administrador é promovido manualmente uma única vez no SQL; a função de criação de funcionários verifica novamente a role no banco.
+- Funcionários autenticados podem operar registos do dia a dia. Exclusão de registos e alterações ao catálogo de serviços ficam reservadas ao administrador nas políticas RLS.
+- Nunca coloque SUPABASE_SERVICE_ROLE_KEY no site público.
+
+6. TABELAS CRIADAS
+------------------
+profiles          utilizadores, email, nome e função
+clients           clientes
+service_catalog   catálogo e preços de serviços
+visor_stock       visores disponíveis no estoque físico
+visor_orders      visores pedidos por encomenda (separado)
+tool_stock        ferramentas e outros materiais
+service_orders    ordens de serviço e classificação de receita
+cash_movements    entradas e saídas do caixa por categoria
+activity_logs     histórico de ações
+
+CATEGORIAS DO CAIXA
+service_normal = Serviço Normal
+visor_stock    = Troca de Visor / No Estoque
+visor_order    = Troca de Visor / Por Encomenda
+
+NOTAS DE MIGRAÇÃO
+-----------------
+A versão desktop original guardava dados em SQLite no computador. Esta versão web cria uma base Supabase nova; não importa automaticamente os registos que já existiam no ficheiro SQLite. Faça exportação/backup dos dados antigos antes de deixar de usar a versão desktop.
+
+Esta entrega implementa os fluxos web principais e a separação de estoque/caixa solicitada. A impressão PDF detalhada da ordem, recuperação de palavra-passe por código local e o backup SQLite do desktop não são usados nesta versão web; podem ser acrescentados numa iteração seguinte com armazenamento de documentos no Supabase Storage.
+
+
+7. INSTALAR NO ECRÃ INICIAL (PWA)
+--------------------------------
+A aplicação inclui suporte PWA e utiliza o logótipo fornecido:
+- manifest.webmanifest: nome, cores e ícones da aplicação.
+- service-worker.js: guarda a estrutura estática básica para carregamento da interface.
+- pwa.js: botão “Instalar no ecrã inicial” e integração com o instalador do navegador.
+- assets/icon-192.png e assets/icon-512.png: ícones gerados a partir do logótipo enviado.
+
+ANDROID (Chrome):
+1. Publique o site num endereço HTTPS (Netlify, Cloudflare Pages ou outro hosting HTTPS).
+2. Abra o endereço no Google Chrome.
+3. Toque em “Instalar no ecrã inicial” dentro do site. Se o Chrome apresentar a janela de instalação, confirme.
+4. Se não aparecer, abra o menu ⋮ do Chrome e escolha “Instalar aplicação” ou “Adicionar ao ecrã inicial”.
+
+iPHONE/iPAD (Safari):
+1. Abra o site no Safari.
+2. Toque em Partilhar.
+3. Escolha “Adicionar ao ecrã principal” e confirme.
+
+COMPUTADOR:
+No Chrome/Edge, abra o site HTTPS e use o botão de instalação ou o ícone de instalar na barra de endereço.
+
+IMPORTANTE:
+- A instalação PWA só funciona em HTTPS (ou localhost durante desenvolvimento).
+- O botão não instala um APK/EXE; adiciona a aplicação web ao ecrã inicial como uma aplicação.
+- O Service Worker guarda apenas os ficheiros da interface. Login, consultas e gravações no Supabase continuam a precisar de ligação à Internet.
+- Não abra index.html diretamente como ficheiro local. Publique num hosting HTTPS.

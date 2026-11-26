@@ -1,0 +1,5 @@
+{
+  "supabase_url": "COLOQUE_AQUI_O_PROJECT_URL",
+  "publishable_key": "COLOQUE_AQUI_A_PUBLISHABLE_KEY",
+  "admin_uid": "COLOQUE_AQUI_O_UID_DO_ADMINISTRADOR"
+}
