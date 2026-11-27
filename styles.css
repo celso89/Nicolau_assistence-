@@ -59,3 +59,11 @@ dialog{background:var(--white);color:var(--ink)}
   div[style*="max-height"]{max-height:none!important}
 }
 @media(max-width:480px){.stats,.cash-grid{grid-template-columns:1fr}}
+
+/* ===== Sempre um painel abaixo do outro (também no computador) ===== */
+.split{grid-template-columns:1fr!important}
+.split>*,.panel,.content,.main{min-width:0}
+.main{overflow-x:hidden}
+.table-wrap{overflow-x:auto}
+.split .panel{margin-bottom:17px}
+.split{gap:0}
