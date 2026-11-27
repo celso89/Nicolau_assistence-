@@ -1,5 +1,5 @@
 // Network-first: com Internet carrega sempre a versão mais recente; sem Internet usa a cópia guardada.
-const CACHE_NAME='nicolau-assistance-shell-v3';
+const CACHE_NAME='nicolau-assistance-shell-v4';
 const APP_SHELL=['./','./index.html','./styles.css','./config.js','./app.js','./pwa.js','./manifest.webmanifest','./assets/logo.png','./assets/icon-192.png','./assets/icon-512.png','./assets/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
